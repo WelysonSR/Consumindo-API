@@ -9,6 +9,11 @@
 </head>
 
 <body>
+    <label for="">Login</label>
+    <input type="text" name="email" id="email" placeholder="Digite seu email!">
+    <input type="password" name="password" id="password" placeholder="***********">
+    <button type="button" onclick="login()">Lograr</button>
+
     <hr>
     <h4>Lista de Games</h4>
     <ul id="games"></ul>
@@ -26,14 +31,38 @@
     <input type="text" name="titleEdit" id="titleEdit" placeholder="Titulo"><br>
     <input type="number" name="yearEdit" id="yearEdit" placeholder="Ano"><br>
     <input type="number" name="priceEdit" id="priceEdit" placeholder="Preço"><br>
-    <button type="button" onclick="udateGame()">Editar</button>
+    <button type="button" onclick="updateGame()">Editar</button>
 
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
 
-    axios.get("http://localhost:8080/games").then(response => {
+    function login(){
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+
+        axios.post("http://localhost:8080/auth",{
+            email,
+            password
+        }).then(res =>{
+            let token = res.data.token;
+            localStorage.setItem("token",token);
+            axiosConfig.headers.Authorization = "Bearer "+ localStorage.getItem("token");
+            alert("Acesso autorizado");
+            document.location.reload(true);
+        }).catch(err =>{
+            alert("Erro na autenticação");
+        });        
+    }
+
+    let axiosConfig ={
+        headers: {
+            Authorization: "Bearer "+ localStorage.getItem("token")
+        }
+    }
+
+    axios.get("http://localhost:8080/games",axiosConfig).then(response => {
         let games = response.data;
         let list =document.getElementById("games");
 
@@ -75,13 +104,14 @@
             year: yearInput.value,
             price: priceInput.value
         }
-        axios.post("http://localhost:8080/game", game).then(response =>{
+        axios.post("http://localhost:8080/game", game,axiosConfig).then(response =>{
             if(response.status == 200){
                 alert("Game cadastrado!");
+                document.location.reload(true);
             }
         }).catch(err =>{
             console.log(err);
-        });
+        });        
     }
 
     function loadForm(listItem){
@@ -97,7 +127,7 @@
         document.getElementById("priceEdit").value = price;
     }
 
-    function udateGame(){
+    function updateGame(){
         let idInput = document.getElementById("idEdit"); 
         let titleInput = document.getElementById("titleEdit");
         let yearInput = document.getElementById("yearEdit");
@@ -109,22 +139,25 @@
             year: yearInput.value,
             price: priceInput.value
         }
-        axios.put("http://localhost:8080/game/"+id, game).then(response =>{
+        axios.put("http://localhost:8080/game/"+id, game,axiosConfig).then(response =>{
             if(response.status == 200){
                 alert("Game atualizado!");
+                document.location.reload(true);
             }
         }).catch(err =>{
             console.log(err);
-        });
+        });        
     }
 
     function deleteGame(listItem){
         let id =listItem.getAttribute("data-id");
-        axios.delete("http://localhost:8080/game/"+id).then(response =>{
-            alert("Game deletado!")
+        axios.delete("http://localhost:8080/game/"+id,axiosConfig).then(response =>{
+            alert("Game deletado!");
+            document.location.reload(true);
         }).catch(err=>{
             console.log(err);
-        })
+        });
+        
     }
 
 </script>
